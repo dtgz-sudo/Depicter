@@ -3,11 +3,14 @@ import tensorflow as tf
 from keras import initializers, layers, regularizers
 from keras.layers import Dropout
 
-
+'''
+计算向量的长度。
+'''
 class Length(layers.Layer):
     """
-    Compute the length of vectors. This is used to compute a Tensor that has the same shape with y_true in margin_loss.
-    Using this layer as model's output can directly predict labels by using `y_pred = np.argmax(model.predict(x), 1)`
+    Compute the length of vectors.
+    This is used to compute a Tensor that has the same shape with y_true in margin_loss.这用于计算与 margin_loss 中的 y_true 具有相同形状的张量。
+    Using this layer as model's output can directly predict labels by using `y_pred = np.argmax(model.predict(x), 1)
     inputs: shape=[None, num_vectors, dim_vector]
     output: shape=[None, num_vectors]
     """
@@ -22,12 +25,12 @@ class Length(layers.Layer):
 class Mask(layers.Layer):
     def call(self, inputs, **kwargs):
         if type(inputs) is list:  # true label is provided with shape = [None, n_classes], i.e. one-hot code.
-            assert len(inputs) == 2
+            assert len(inputs) == 2 #断言
             inputs, mask = inputs
         else:  # if no true label, mask by the max length of capsules. Mainly used for prediction
-            # compute lengths of capsules
+            # compute lengths of capsules(胶囊)
             x = K.sqrt(K.sum(K.square(inputs), -1))
-            # generate the mask which is a one-hot code.
+            # generate the mask which is a one-hot code. one-hot编码
             # mask.shape=[None, n_classes]=[None, num_capsule]
             mask = K.one_hot(indices=K.argmax(x, 1), num_classes=x.get_shape().as_list()[1])
 
@@ -46,26 +49,30 @@ class Mask(layers.Layer):
 
 def squash(vectors, axis=-1):
     """
-    The non-linear activation used in Capsule. It drives the length of a large vector to near 1 and small vector to 0
-    :param vectors: some vectors to be squashed, N-dim tensor
-    :param axis: the axis to squash
+    The non-linear activation(激活)used in Capsule.It drives the length of a large vector to near 1 and small vector to 0
+    :param vectors: some vectors to be squashed(压扁), N-dim tensor
+    :param axis(轴？维度): the axis(轴？维度) to squash(压扁？重塑形状)
     :return: a Tensor with same shape as input vectors
     """
     s_squared_norm = K.sum(K.square(vectors), axis, keepdims=True)
     scale = s_squared_norm / (1 + s_squared_norm) / K.sqrt(s_squared_norm + K.epsilon())
     return scale * vectors
 
-
+'''
+胶囊层
+'''
 class CapsuleLayer(layers.Layer):
     """
-    The capsule layer. It is similar to Dense layer. Dense layer has `in_num` inputs, each is a scalar, the output of the
-    neuron from the former layer, and it has `out_num` output neurons. CapsuleLayer just expand the output of the neuron
-    from scalar to vector. So its input shape = [None, input_num_capsule, input_dim_capsule] and output shape = \
+    The capsule layer. It is similar to Dense layer(密集图 稠密图). Dense layer has `in_num` inputs, each is a scalar(标量), the output of the
+    neuron(神经元) from the former layer, and it has `out_num` output neurons.
+    CapsuleLayer just expand the output of the neuron(神经元) from scalar(标量) to vector(向量).
+    So its input shape = [None, input_num_capsule, input_dim_capsule] and output shape = \
     [None, num_capsule, dim_capsule]. For Dense Layer, input_dim_capsule = dim_capsule = 1.
 
+
     :param num_capsule: number of capsules in this layer 10 (output layer)
-    :param dim_capsule: dimension of the output vectors of the capsules in this layer 16 (output layer)
-    :param num_routing: number of iterations for the routing algorithm
+    :param dim_capsule: dimension(维度)of the output vectors of the capsules in this layer 16 (output layer)
+    :param num_routing: number of iterations(迭代器 java pthon 都有) for the routing algorithm 路由算法的迭代次数
     """
 
     def __init__(self, num_capsule, dim_capsule, num_routing=3,
@@ -177,7 +184,7 @@ class CapsuleLayer_nogradient_stop(layers.Layer):
     [None, num_capsule, dim_capsule]. For Dense Layer, input_dim_capsule = dim_capsule = 1.
 
     :param num_capsule: number of capsules in this layer
-    :param dim_capsule: dimension of the output vectors of the capsules in this layer
+    :param dim_capsule: dimension(维度) of the output vectors of the capsules in this layer
     :param num_routing: number of iterations for the routing algorithm
     """
 
@@ -211,7 +218,7 @@ class CapsuleLayer_nogradient_stop(layers.Layer):
         # inputs_expand.shape=[None, 1, input_num_capsule, input_dim_capsule]
         inputs_expand = K.expand_dims(inputs, 1)
 
-        # Replicate num_capsule dimension to prepare being multiplied by W
+        # Replicate(复制) num_capsule dimension to prepare being multiplied by W  复制 num_capsule 维度以准备乘以 W
         # inputs_tiled.shape=[None, num_capsule, input_num_capsule, input_dim_capsule]
         inputs_tiled = K.tile(inputs_expand, [1, self.num_capsule, 1, 1])
         ####dropout on inputs_tiles#############################
@@ -225,8 +232,8 @@ class CapsuleLayer_nogradient_stop(layers.Layer):
         inputs_hat = K.map_fn(lambda x: K.batch_dot(x, self.W, [2, 3]), elems=inputs_tiled)
         ##########dropout on inputs_hat
         K.in_train_phase(K.dropout(inputs_hat, self.dropout, noise_shape=None), inputs_hat, training=training)
-        # Begin: Routing algorithm ---------------------------------------------------------------------#
-        # The prior for coupling coefficient, initialized as zeros.
+        # Begin: Routing algorithm 路由算法--------------------------------------------------------------#
+        # The prior(prior)for coupling(耦合) coefficient(系数), initialized as zeros. 初始化为零
         # b.shape = [None, self.num_capsule, self.input_num_capsule].
         b = tf.zeros(shape=[K.shape(inputs_hat)[0], self.num_capsule, self.input_num_capsule])
         if self.num_routing == 0:

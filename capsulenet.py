@@ -53,7 +53,9 @@ class Extract_weight_c(Layer):
         # return K.batch_flatten(x)
         return x
 
-
+'''
+自定义二元交叉熵
+'''
 def custom_binary_crossentropy(y_true, y_pred):
     return K.mean(K.binary_crossentropy(K.flatten(y_pred), K.flatten(y_true)), axis=-1)
 
@@ -64,9 +66,11 @@ def CapsNet(input_shape, n_class, routings, modeltype, power=2):
     if modeltype == "nogradientstop_crossentropy":
         return CapsNet_nogradientstop_crossentropy(input_shape, n_class, routings)
 
-
+'''
+无梯度停止
+'''
 def CapsNet_nogradientstop(input_shape, n_class,
-                           routings): 
+                           routings):
     x = layers.Input(shape=input_shape)
     conv1 = layers.Conv1D(filters=200, kernel_size=1, strides=1, padding='valid', kernel_initializer='he_normal',
                           activation='relu', name='conv1')(x)
@@ -110,7 +114,9 @@ def CapsNet_nogradientstop(input_shape, n_class,
     manipulate_model = Model([x, y, noise], decoder(masked_noised_y))
     return train_model, eval_model, manipulate_model, weight_c_model
 
-
+'''
+无梯度停止交叉熵
+'''
 def CapsNet_nogradientstop_crossentropy(input_shape, n_class,
                                         routings):
     x = layers.Input(shape=input_shape)

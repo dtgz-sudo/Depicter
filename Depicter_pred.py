@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # _*_coding:utf-8_*_
-
 import sys
 import itertools
 import pickle
@@ -13,6 +12,35 @@ import csv
 import keras
 from keras.models import load_model
 import collections
+
+'''
+20211224232316_qDR8mtMh
+
+测试数据 人类部分数据能跑通 结果看不懂 
+--input
+examples/examples_H.sapiens_TATA.txt
+--output
+D:\用户\下载\专硕资料备份\数据挖掘\output\1.txt
+--seq_type
+full_length
+--species
+Human
+--type
+TATA+
+
+人类测试数据
+--input
+H.sapiens_TATA_Data/Ntest.txt
+--output
+D:\用户\下载\专硕资料备份\数据挖掘\output\1.csv
+--seq_type
+full_length
+--species
+Human
+--type
+TATA+
+
+'''
 def binary(sequences):
     AA = 'ACGT'
     binary_feature = []
@@ -333,9 +361,10 @@ def main():
             if speciesfile == 'Human':
                 if typefile == 'TATA+':
                     model = "nogradientstop"
-                    from capsulenet_With import Capsnet_main
+                    # from capsulenet_With import Capsnet_main
+                    from capsulenet import Capsnet_main
                     model = Capsnet_main(ppp, y, nb_epoch=1, compiletimes=0, lr=0.0001, batch_size=7, lam_recon=0.5, routings=3, modeltype=model, nb_classes=2, predict=True)  # only to get config
-                    model[1].load_weights(r'HumanWith.h5')
+                    # model[1].load_weights(r'HumanWith.h5')
                     predictions, score = model[1].predict(ppp)
                 elif typefile == 'TATA-':
                     from capsulenet_Non import Capsnet_main
@@ -351,10 +380,12 @@ def main():
                     predictions, score = model[1].predict(ppp)
             elif speciesfile == 'Mouse':
                 if typefile == 'TATA+':
-                    from capsulenet_With import Capsnet_main
+                    # from capsulenet_With import Capsnet_main
+                    from capsulenet import Capsnet_main
                     model = "nogradientstop"
                     model = Capsnet_main(ppp, y, nb_epoch=1, compiletimes=0, lr=0.0001, batch_size=64,lam_recon=0.01, routings=3,modeltype=model, nb_classes=2, predict=True)  # only to get config
-                    model[1].load_weights(r'MouseWith.h5')
+                    # model[1].load_weights(r'MouseWith.h5')
+                    model[1].load_weights(r'H.sapiens_All.h5') #zdf
                     predictions, score = model[1].predict(ppp)
                 elif typefile == 'TATA-':
                     from capsulenet_Non import Capsnet_main
@@ -420,17 +451,19 @@ def main():
             with open(outputfile, 'w') as f:
                 for i in range(len(data)):
                     if float(probability[i]) > 0.5:
-                        f.write(probability[i] + '*'  + '\t')
-                        f.write(decisions[i] + '\t')
-                        f.write(name[i] + '\t')
-                        f.write(seq[i] + '\n')
+                        f.write(probability[i] + '*'  + '          \t')
+                        f.write(decisions[i] + '          \t')
+                        f.write(name[i] + '          \t')
+                        f.write(seq[i] + '          \n')
                     else:
-                        f.write(probability[i] + '\t')
-                        f.write(name[i] + '\t')
-                        f.write(seq[i] + '\n')
+                        f.write(probability[i] + '          \t')
+                        f.write(name[i] + '          \t')
+                        f.write(seq[i] + '          \n')
             print('output are saved in ' + outputfile + ', and those identified as promoters are marked with *')
     except Exception as e:
         print('Please check the format of your predicting data!')
+        print(e)
+        raise e
         sys.exit(1)
 
 if __name__ == "__main__":
