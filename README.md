@@ -57,3 +57,44 @@ optional arguments:
                         --kinds is 'eukaryote'. we accept 'TATA+' or 'TATA-'
                         
                         or 'TATA+_TATA-'.
+
+##python execution example
+###Human independent test
+
+    
+>python Depicter_pred.py --input
+examples/examples_H.sapiens_TATA.txt
+--output
+\output\1.txt
+--seq_type
+full_length
+--species
+Human
+--type
+TATA+
+###Human test
+>python Depicter_pred.py 
+> --input
+H.sapiens_TATA_Data/Ntest.txt
+--output
+\output\1.csv
+--seq_type
+full_length
+--species
+Human
+--type
+TATA+
+
+###Does not specify species generalization test
+>python Depicter_pred.py 
+--input
+H.sapiens_TATA_Data/Ntest.txt
+--output
+\output\1.csv
+--seq_type
+full_length
+--species
+Human
+--type
+TATA+
+--select_all species_all
